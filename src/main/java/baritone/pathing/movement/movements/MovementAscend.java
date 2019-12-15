@@ -69,11 +69,11 @@ public class MovementAscend extends Movement {
         IBlockState toPlace = context.get(destX, y, destZ);
         double additionalPlacementCost = 0;
         if (!MovementHelper.canWalkOn(context.bsi, destX, y, destZ, toPlace)) {
-            additionalPlacementCost = context.costOfPlacingAt(destX, y, destZ);
+            additionalPlacementCost = context.costOfPlacingAt(destX, y, destZ, toPlace);
             if (additionalPlacementCost >= COST_INF) {
                 return COST_INF;
             }
-            if (!MovementHelper.isReplacable(destX, y, destZ, toPlace, context.bsi)) {
+            if (!MovementHelper.isReplaceable(destX, y, destZ, toPlace, context.bsi)) {
                 return COST_INF;
             }
             boolean foundPlaceOption = false;

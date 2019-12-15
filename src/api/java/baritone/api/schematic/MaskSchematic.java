@@ -15,41 +15,30 @@
  * along with Baritone.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package baritone.utils.schematic;
+package baritone.api.schematic;
 
-import baritone.api.utils.ISchematic;
 import net.minecraft.block.state.IBlockState;
-import net.minecraft.init.Blocks;
 
-public class AirSchematic implements ISchematic {
+import java.util.List;
 
-    private final int widthX;
-    private final int heightY;
-    private final int lengthZ;
+public abstract class MaskSchematic extends AbstractSchematic {
 
-    public AirSchematic(int widthX, int heightY, int lengthZ) {
-        this.widthX = widthX;
-        this.heightY = heightY;
-        this.lengthZ = lengthZ;
+    private final ISchematic schematic;
+
+    public MaskSchematic(ISchematic schematic) {
+        super(schematic.widthX(), schematic.heightY(), schematic.lengthZ());
+        this.schematic = schematic;
+    }
+
+    protected abstract boolean partOfMask(int x, int y, int z, IBlockState currentState);
+
+    @Override
+    public boolean inSchematic(int x, int y, int z, IBlockState currentState) {
+        return schematic.inSchematic(x, y, z, currentState) && partOfMask(x, y, z, currentState);
     }
 
     @Override
-    public IBlockState desiredState(int x, int y, int z) {
-        return Blocks.AIR.getDefaultState();
-    }
-
-    @Override
-    public int widthX() {
-        return widthX;
-    }
-
-    @Override
-    public int heightY() {
-        return heightY;
-    }
-
-    @Override
-    public int lengthZ() {
-        return lengthZ;
+    public IBlockState desiredState(int x, int y, int z, IBlockState current, List<IBlockState> approxPlaceable) {
+        return schematic.desiredState(x, y, z, current, approxPlaceable);
     }
 }

@@ -114,7 +114,7 @@ public class MovementParkour extends Movement {
                 return;
             }
             IBlockState destInto = context.bsi.get0(destX, y, destZ);
-            if (!MovementHelper.fullyPassable(destInto)) {
+            if (!MovementHelper.fullyPassable(context.bsi.access, context.bsi.isPassableBlockPos.setPos(destX, y, destZ), destInto)) {
                 if (i <= 3 && context.allowParkourAscend && context.canSprint && MovementHelper.canWalkOn(context.bsi, destX, y, destZ, destInto) && checkOvershootSafety(context.bsi, destX + xDiff, y + 1, destZ + zDiff)) {
                     res.x = destX;
                     res.y = y + 1;
@@ -147,12 +147,12 @@ public class MovementParkour extends Movement {
         // time 2 pop off with that dank skynet parkour place
         int destX = x + 4 * xDiff;
         int destZ = z + 4 * zDiff;
-        double placeCost = context.costOfPlacingAt(destX, y - 1, destZ);
+        IBlockState toReplace = context.get(destX, y - 1, destZ);
+        double placeCost = context.costOfPlacingAt(destX, y - 1, destZ, toReplace);
         if (placeCost >= COST_INF) {
             return;
         }
-        IBlockState toReplace = context.get(destX, y - 1, destZ);
-        if (!MovementHelper.isReplacable(destX, y - 1, destZ, toReplace, context.bsi)) {
+        if (!MovementHelper.isReplaceable(destX, y - 1, destZ, toReplace, context.bsi)) {
             return;
         }
         if (!checkOvershootSafety(context.bsi, destX + xDiff, y, destZ + zDiff)) {
@@ -227,10 +227,6 @@ public class MovementParkour extends Movement {
     public MovementState updateState(MovementState state) {
         super.updateState(state);
         if (state.getStatus() != MovementStatus.RUNNING) {
-            return state;
-        }
-        if (ctx.player().isHandActive()) {
-            logDebug("Pausing parkour since hand is active");
             return state;
         }
         if (ctx.playerFeet().y < src.y) {

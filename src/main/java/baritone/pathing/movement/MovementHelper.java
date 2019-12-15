@@ -18,6 +18,7 @@
 package baritone.pathing.movement;
 
 import baritone.Baritone;
+import baritone.api.BaritoneAPI;
 import baritone.api.IBaritone;
 import baritone.api.pathing.movement.ActionCosts;
 import baritone.api.pathing.movement.MovementStatus;
@@ -34,6 +35,7 @@ import net.minecraft.util.EnumFacing;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.RayTraceResult;
 import net.minecraft.util.math.Vec3d;
+import net.minecraft.world.IBlockAccess;
 
 import java.util.Optional;
 
@@ -131,10 +133,8 @@ public interface MovementHelper extends ActionCosts, Helper {
             }
             return block == Blocks.WATER || block == Blocks.FLOWING_WATER;
         }
-        // every block that overrides isPassable with anything more complicated than a "return true;" or "return false;"
-        // has already been accounted for above
-        // therefore it's safe to not construct a blockpos from our x, y, z ints and instead just pass null
-        return block.isPassable(null, BlockPos.ORIGIN);
+
+        return block.isPassable(bsi.access, bsi.isPassableBlockPos.setPos(x, y, z));
     }
 
     /**
@@ -148,10 +148,18 @@ public interface MovementHelper extends ActionCosts, Helper {
      * @return Whether or not the block at the specified position
      */
     static boolean fullyPassable(CalculationContext context, int x, int y, int z) {
-        return fullyPassable(context.get(x, y, z));
+        return fullyPassable(
+                context.bsi.access,
+                context.bsi.isPassableBlockPos.setPos(x, y, z),
+                context.bsi.get0(x, y, z)
+        );
     }
 
-    static boolean fullyPassable(IBlockState state) {
+    static boolean fullyPassable(IPlayerContext ctx, BlockPos pos) {
+        return fullyPassable(ctx.world(), pos, ctx.world().getBlockState(pos));
+    }
+
+    static boolean fullyPassable(IBlockAccess access, BlockPos pos, IBlockState state) {
         Block block = state.getBlock();
         if (block == Blocks.AIR) { // early return for most common case
             return true;
@@ -173,10 +181,10 @@ public interface MovementHelper extends ActionCosts, Helper {
             return false;
         }
         // door, fence gate, liquid, trapdoor have been accounted for, nothing else uses the world or pos parameters
-        return block.isPassable(null, null);
+        return block.isPassable(access, pos);
     }
 
-    static boolean isReplacable(int x, int y, int z, IBlockState state, BlockStateInterface bsi) {
+    static boolean isReplaceable(int x, int y, int z, IBlockState state, BlockStateInterface bsi) {
         // for MovementTraverse and MovementAscend
         // block double plant defaults to true when the block doesn't match, so don't need to check that case
         // all other overrides just return true or false
@@ -204,6 +212,11 @@ public interface MovementHelper extends ActionCosts, Helper {
             return kek == BlockDoublePlant.EnumPlantType.FERN || kek == BlockDoublePlant.EnumPlantType.GRASS;
         }
         return state.getMaterial().isReplaceable();
+    }
+
+    @Deprecated
+    static boolean isReplacable(int x, int y, int z, IBlockState state, BlockStateInterface bsi) {
+        return isReplaceable(x, y, z, state, bsi);
     }
 
     static boolean isDoorPassable(IPlayerContext ctx, BlockPos doorPos, BlockPos playerPos) {
@@ -370,7 +383,7 @@ public interface MovementHelper extends ActionCosts, Helper {
             if (block instanceof BlockLiquid) {
                 return COST_INF;
             }
-            double mult = context.breakCostMultiplierAt(x, y, z);
+            double mult = context.breakCostMultiplierAt(x, y, z, state);
             if (mult >= COST_INF) {
                 return COST_INF;
             }
@@ -408,7 +421,7 @@ public interface MovementHelper extends ActionCosts, Helper {
      * @param b   the blockstate to mine
      */
     static void switchToBestToolFor(IPlayerContext ctx, IBlockState b) {
-        switchToBestToolFor(ctx, b, new ToolSet(ctx.player()));
+        switchToBestToolFor(ctx, b, new ToolSet(ctx.player()), BaritoneAPI.getSettings().preferSilkTouch.value);
     }
 
     /**
@@ -418,8 +431,8 @@ public interface MovementHelper extends ActionCosts, Helper {
      * @param b   the blockstate to mine
      * @param ts  previously calculated ToolSet
      */
-    static void switchToBestToolFor(IPlayerContext ctx, IBlockState b, ToolSet ts) {
-        ctx.player().inventory.currentItem = ts.getBestSlot(b.getBlock());
+    static void switchToBestToolFor(IPlayerContext ctx, IBlockState b, ToolSet ts, boolean preferSilkTouch) {
+        ctx.player().inventory.currentItem = ts.getBestSlot(b.getBlock(), preferSilkTouch);
     }
 
     static void moveTowards(IPlayerContext ctx, MovementState state, BlockPos pos) {

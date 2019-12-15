@@ -17,33 +17,17 @@
 
 package baritone.launch.mixins;
 
-import com.google.common.base.MoreObjects;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Vec3i;
+import baritone.utils.accessor.IGuiScreen;
+import net.minecraft.client.gui.GuiScreen;
 import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.gen.Invoker;
 
-import javax.annotation.Nonnull;
+import java.net.URI;
 
-/**
- * @author Brady
- * @since 8/25/2018
- */
-@Mixin(BlockPos.class)
-public class MixinBlockPos extends Vec3i {
+@Mixin(GuiScreen.class)
+public abstract class MixinGuiScreen implements IGuiScreen {
 
-    public MixinBlockPos(int xIn, int yIn, int zIn) {
-        super(xIn, yIn, zIn);
-    }
-
-    /**
-     * The purpose of this was to ensure a friendly name for when we print raw
-     * block positions to chat in the context of an obfuscated environment.
-     *
-     * @return a string representation of the object.
-     */
     @Override
-    @Nonnull
-    public String toString() {
-        return MoreObjects.toStringHelper("BlockPos").add("x", this.getX()).add("y", this.getY()).add("z", this.getZ()).toString();
-    }
+    @Invoker("openWebLink")
+    public abstract void openLink(URI url);
 }

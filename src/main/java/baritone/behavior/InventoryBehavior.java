@@ -26,6 +26,7 @@ import net.minecraft.client.entity.EntityPlayerSP;
 import net.minecraft.init.Blocks;
 import net.minecraft.inventory.ClickType;
 import net.minecraft.item.*;
+import net.minecraft.util.EnumFacing;
 import net.minecraft.util.NonNullList;
 
 import java.util.ArrayList;
@@ -34,6 +35,7 @@ import java.util.Random;
 import java.util.function.Predicate;
 
 public final class InventoryBehavior extends Behavior {
+
     public InventoryBehavior(Baritone baritone) {
         super(baritone);
     }
@@ -101,7 +103,7 @@ public final class InventoryBehavior extends Behavior {
         return -1;
     }
 
-    private int bestToolAgainst(Block against, Class<? extends ItemTool> klass) {
+    private int bestToolAgainst(Block against, Class<? extends ItemTool> cla$$) {
         NonNullList<ItemStack> invy = ctx.player().inventory.mainInventory;
         int bestInd = -1;
         double bestSpeed = -1;
@@ -110,7 +112,7 @@ public final class InventoryBehavior extends Behavior {
             if (stack.isEmpty()) {
                 continue;
             }
-            if (klass.isInstance(stack.getItem())) {
+            if (cla$$.isInstance(stack.getItem())) {
                 double speed = ToolSet.calculateSpeedVsBlock(stack, against.getDefaultState()); // takes into account enchants
                 if (speed > bestSpeed) {
                     bestSpeed = speed;
@@ -131,9 +133,12 @@ public final class InventoryBehavior extends Behavior {
     }
 
     public boolean selectThrowawayForLocation(boolean select, int x, int y, int z) {
-        IBlockState maybe = baritone.getBuilderProcess().placeAt(x, y, z);
-        if (maybe != null && throwaway(select, stack -> stack.getItem() instanceof ItemBlock && ((ItemBlock) stack.getItem()).getBlock().equals(maybe.getBlock()))) {
+        IBlockState maybe = baritone.getBuilderProcess().placeAt(x, y, z, baritone.bsi.get0(x, y, z));
+        if (maybe != null && throwaway(select, stack -> stack.getItem() instanceof ItemBlock && maybe.equals(((ItemBlock) stack.getItem()).getBlock().getStateForPlacement(ctx.world(), ctx.playerFeet(), EnumFacing.UP, (float) ctx.player().posX, (float) ctx.player().posY, (float) ctx.player().posZ, stack.getItem().getMetadata(stack.getMetadata()), ctx.player())))) {
             return true; // gotem
+        }
+        if (maybe != null && throwaway(select, stack -> stack.getItem() instanceof ItemBlock && ((ItemBlock) stack.getItem()).getBlock().equals(maybe.getBlock()))) {
+            return true;
         }
         for (Item item : Baritone.settings().acceptableThrowawayItems.value) {
             if (throwaway(select, stack -> item.equals(stack.getItem()))) {
@@ -146,7 +151,7 @@ public final class InventoryBehavior extends Behavior {
     public boolean throwaway(boolean select, Predicate<? super ItemStack> desired) {
         EntityPlayerSP p = ctx.player();
         NonNullList<ItemStack> inv = p.inventory.mainInventory;
-        for (byte i = 0; i < 9; i++) {
+        for (int i = 0; i < 9; i++) {
             ItemStack item = inv.get(i);
             // this usage of settings() is okay because it's only called once during pathing
             // (while creating the CalculationContext at the very beginning)
@@ -166,7 +171,7 @@ public final class InventoryBehavior extends Behavior {
             // we've already checked above ^ and the main hand can't possible have an acceptablethrowawayitem
             // so we need to select in the main hand something that doesn't right click
             // so not a shovel, not a hoe, not a block, etc
-            for (byte i = 0; i < 9; i++) {
+            for (int i = 0; i < 9; i++) {
                 ItemStack item = inv.get(i);
                 if (item.isEmpty() || item.getItem() instanceof ItemPickaxe) {
                     if (select) {

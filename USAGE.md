@@ -8,11 +8,23 @@ Baritone commands can also by default be typed in the chatbox. However if you ma
 
 To disable direct chat control (with no prefix), turn off the `chatControl` setting. To disable chat control with the `#` prefix, turn off the `prefixControl` setting. In Impact, `.b` cannot be disabled. Be careful that you don't leave yourself with all control methods disabled (if you do, reset your settings by deleting the file `minecraft/baritone/settings.txt` and relaunching).
 
+# For Baritone 1.2.10+, 1.3.5+, 1.4.2+
+
+Lots of the commands have changed, BUT `#help` is improved vastly (its clickable! commands have tab completion! oh my!).
+
+Try `#help` I promise it won't just send you back here =)
+
+"wtf where is cleararea" -> look at `#help sel`
+
+"wtf where is goto death, goto waypoint" -> look at `#help wp` (a "tag" is like "home" (created automatically on right clicking a bed) or "death" (created automatically on death) or "user" (has to be created manually)). So you might want `#wp save user coolbiome` then, to set the goal `#wp goal coolbiome` then `#path` to path to it. For death, `#wp goal death` (remember stuff is clickable!).
+
+just look at `#help` lmao
+
 # Commands
 
 **All** of these commands may need a prefix before them, as above ^.
 
-`help` for (rudimentary) help. You can see what it says [here](https://github.com/cabaletta/baritone/blob/master/src/api/java/baritone/api/utils/ExampleBaritoneControl.java#L47).
+`help`
 
 To toggle a boolean setting, just say its name in chat (for example saying `allowBreak` toggles whether Baritone will consider breaking blocks). For a numeric setting, say its name then the new value (like `primaryTimeoutMS 250`). It's case insensitive. To reset a setting to its default value, say `acceptableThrowawayItems reset`. To reset all settings, say `reset`. To see all settings that have been modified from their default values, say `modified`.
 
@@ -24,7 +36,7 @@ Some common examples:
 - `goal clear` to clear the goal
 - `cancel` or `stop` to stop everything
 - `goto portal` or `goto ender_chest` or `goto block_type` to go to a block. (in Impact, `.goto` is an alias for `.b goto` for the most part)
-- `mine diamond_ore` to mine diamond ore (turn on the setting `legitMine` to only mine ores that it can actually see. It will explore randomly around y=11 until it finds them.)
+- `mine diamond_ore iron_ore` to mine diamond ore or iron ore (turn on the setting `legitMine` to only mine ores that it can actually see. It will explore randomly around y=11 until it finds them.) An amount of blocks can also be specified, for example, `mine diamond_ore 64`.
 - `click` to click your destination on the screen. Right click path to on top of the block, left click to path into it (either at foot level or eye level), and left click and drag to clear all blocks from an area.
 - `follow playerName` to follow a player. `followplayers` to follow any players in range (combine with Kill Aura for a fun time). `followentities` to follow any entities. `followentity pig` to follow entities of a specific type.
 - `save waypointName` to save a waypoint. `goto waypointName` to go to it.
@@ -37,7 +49,6 @@ Some common examples:
 - `invert` to invert the current goal and path. This gets as far away from it as possible, instead of as close as possible. For example, do `goal` then `invert` to run as far as possible from where you're standing at the start.
 - `version` to get the version of Baritone you're running
 - `damn` daniel
-
 
 For the rest of the commands, you can take a look at the code [here](https://github.com/cabaletta/baritone/blob/master/src/api/java/baritone/api/utils/ExampleBaritoneControl.java).
 
